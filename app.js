@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 4000;
-const CLIENT_URL = "https://chatmeapp.vercel.app/login";
+const CLIENT_URL = "https://chatmeapp.vercel.app";
 
 // Middleware
 app.use(express.json());

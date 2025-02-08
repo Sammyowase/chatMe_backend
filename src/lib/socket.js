@@ -7,29 +7,42 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5174"],
+    origin: ["https://chatmeapp.vercel.app"], 
+    methods: ["GET", "POST"],
+    credentials: true, 
   },
 });
+
+const userSocketMap = {}; 
 
 export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
-
 io.on("connection", (socket) => {
-  console.log("A user connected", socket.id);
+  console.log(`A user connected with socket ID: ${socket.id}`);
 
   const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id;
+  
+  if (userId) {
+    userSocketMap[userId] = socket.id;
+    console.log(`User ${userId} connected with socket ID ${socket.id}`);
+  } else {
+    console.log("User ID not provided in handshake");
+  }
 
-  // io.emit() is used to send events to all the connected clients
+  console.log("Socket details:", socket);
+
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected", socket.id);
-    delete userSocketMap[userId];
+    console.log(`A user with socket ID ${socket.id} disconnected`);
+    
+    if (userId) {
+      delete userSocketMap[userId];
+      console.log(`User ${userId} disconnected`);
+    }
+
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });

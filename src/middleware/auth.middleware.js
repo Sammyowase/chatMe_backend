@@ -11,11 +11,19 @@ export const protectRoute = async (req, res, next) => {
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({ message: "Unauthorized - Token Expired" });
+        }
+        return res.status(401).json({ message: "Unauthorized - Invalid Token" });
+      }
+      return decoded;
+    });
 
-    // If the token is invalid or expired
+    // If the token is invalid or expired, the error response is sent in jwt.verify
     if (!decoded) {
-      return res.status(401).json({ message: "Unauthorized - Invalid or Expired Token" });
+      return;
     }
 
     // Check if the user exists based on the decoded userId
@@ -34,12 +42,7 @@ export const protectRoute = async (req, res, next) => {
     // Log the error for debugging
     console.error("Error in protectRoute middleware:", error);
 
-    // Handle JWT errors specifically
-    if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: "Unauthorized - Invalid Token" });
-    }
-
-    // Handle any other server errors
-    res.status(500).json({ message: "Internal server error" });
+    // Handle general errors
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

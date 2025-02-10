@@ -1,10 +1,11 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
-
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
+import { protectRoute } from "../middleware/auth.middleware.js"; // Import the protectRoute middleware
 
-export const getUsersForSidebar = async (req, res) => {
+// Middleware to protectRoute the routes
+export const getUsersForSidebar = [protectRoute, async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
@@ -14,9 +15,9 @@ export const getUsersForSidebar = async (req, res) => {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
-};
+}];
 
-export const getMessages = async (req, res) => {
+export const getMessages = [protectRoute, async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
     const myId = req.user._id;
@@ -33,9 +34,9 @@ export const getMessages = async (req, res) => {
     console.log("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
-};
+}];
 
-export const sendMessage = async (req, res) => {
+export const sendMessage = [protectRoute, async (req, res) => {
   try {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
@@ -67,4 +68,4 @@ export const sendMessage = async (req, res) => {
     console.log("Error in sendMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
-};
+}];
